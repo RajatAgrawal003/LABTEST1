@@ -1,0 +1,83 @@
+import matplotlib.pyplot as plt
+import numpy as np 
+from scipy.signal import butter
+
+np.random.seed(42)
+minutes = 1440
+pollution_data = np.clip(np.random.normal(scale=60, size=minutes) + np.random.normal(scale=10, size=minutes), 0, None)
+
+
+def lowpass_filter(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low')
+    return b, a
+
+cutoff_frequency = 0.1  
+sampling_rate = 1  
+filtered_data = lowpass_filter(pollution_data, cutoff_frequency, sampling_rate)
+
+def compute_hourly_averages(data):
+    hourly_averages = np.mean(data.reshape(1, 60), axis=1)  
+    return hourly_averages
+
+hourly_averages = compute_hourly_averages(pollution_data)
+print("Hrly PM2.5 Avgs:")
+
+    
+
+plt.figure()
+plt.plot(pollution_data, label='Origin Noisy Data', linestyle='-', color='blue')
+plt.plot(filtered_data, label='Filtered Data', linestyle='--', color='orange')
+
+
+hazardous_hours = hourly_averages > 150
+for hour in range(len(hazardous_hours)):
+
+
+    plt.title('PM2.5 Levels in a HighTraffic Area')
+    plt.xlabel('Time ')
+    plt.ylabel('PM2.5 ')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+
+
+exceeding_threshold = pollution_data > 200
+consecutive_minutes = 0
+peak_start = None
+peaks = []
+
+for i in range(len(exceeding_threshold)):
+    if exceeding_threshold[i]:
+        consecutive_minutes += 1
+        if consecutive_minutes == 1:
+            peak_start = i
+    else:
+        if consecutive_minutes > 10:
+            peaks.append()  
+        consecutive_minutes = 0
+
+
+plt.figure()
+plt.plot(pollution_data, label='PM2.5 Data', linestyle='-', color='blue', alpha=0.5)
+
+
+for start, end in peaks:
+    plt.plot(range(start, end + 1), pollution_data[start:end + 1], 'ro', markersize=5)
+
+plt.title('PM2.5 Levels with Peaks Exceeding 200 µg/m³')
+plt.xlabel('Time (minutes)')
+plt.ylabel('PM2.5 (µg/m³)')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+
+    
+    
+ 
+
+
